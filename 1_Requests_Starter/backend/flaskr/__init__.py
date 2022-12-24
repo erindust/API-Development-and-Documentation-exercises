@@ -41,34 +41,46 @@ def create_app(test_config=None):
     @app.route('/books')
     def get_books():
         page = request.args.get('page',1,type=int)
-        start = (page - 1) * 10
-        end = start + 10
+        start = (page - 1) * BOOKS_PER_SHELF
+        end = start + BOOKS_PER_SHELF
         books = Book.query.all()
         formatted_books = [book.format() for book in books]
         return jsonify({
             'success':True,
-            'books':formatted_books,
+            'books':formatted_books[start:end],
             'total_books':len(formatted_books)
         })
-
-
-
 
     # @TODO: Write a route that will update a single book's rating.
     #         It should only be able to update the rating, not the entire representation
     #         and should follow API design principles regarding method and route.
     #         Response body keys: 'success'
     # TEST: When completed, you will be able to click on stars to update a book's rating and it will persist after refresh
+    @app.route('/books/<int:book_id>/update-book',methods=['POST'])
+    def update_book(book_id):
+        return jsonify({
+            "success":True
+        })
+
 
     # @TODO: Write a route that will delete a single book.
     #        Response body keys: 'success', 'deleted'(id of deleted book), 'books' and 'total_books'
     #        Response body keys: 'success', 'books' and 'total_books'
-
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
+    @app.route('/books/<int:book_id>/delete-book',methods=['DELETE'])
+    def delete_book(book_id):
+        return jsonify({
+            "success":True,
+            "deleted":book_id
+        })
+
 
     # @TODO: Write a route that create a new book.
     #        Response body keys: 'success', 'created'(id of created book), 'books' and 'total_books'
     # TEST: When completed, you will be able to a new book using the form. Try doing so from the last page of books.
     #       Your new book should show up immediately after you submit it at the end of the page.
+    @app.route('/books/create-book',methods=['POST'])
+    def create_book():
+        pass
 
     return app
