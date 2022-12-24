@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy  # , or_
 from flask_cors import CORS
 import random
 
-from models import setup_db, Book
+from models import setup_db, Book, db
 
 BOOKS_PER_SHELF = 8
 
@@ -56,11 +56,35 @@ def create_app(test_config=None):
     #         and should follow API design principles regarding method and route.
     #         Response body keys: 'success'
     # TEST: When completed, you will be able to click on stars to update a book's rating and it will persist after refresh
-    @app.route('/books/<int:book_id>/update-book',methods=['POST'])
-    def update_book(book_id):
-        return jsonify({
-            "success":True
-        })
+    # TO TEST FROM COMMAND LINE: curl http://127.0.0.1:5000/books/3/update-rating -X PATCH -H "Content-Type: application/json" -d "{\"rating\":\"4\"}"
+    @app.route('/books/<int:book_id>/update-rating',methods=['PATCH'])
+    def update_rating(book_id):
+        error = False
+        try:
+            print("bp1 book_id:", book_id)
+            body = request.get_json()
+            print(body)
+            rating = request.get_json()['rating']
+            print("bp2")
+            book = Book.query.get(book_id)
+            print("bp3")
+            book.rating = rating
+            print("bp4")
+            db.session.commit()
+        except:
+            error = True
+            print("Error occurred")
+            db.session.rollback()
+        finally:
+            db.session.close()
+        if error:
+            return jsonify({
+                "success":False
+            })
+        else:
+            return jsonify({
+                "success":True
+            })
 
 
     # @TODO: Write a route that will delete a single book.
