@@ -93,10 +93,30 @@ def create_app(test_config=None):
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
     @app.route('/books/<int:book_id>/delete-book',methods=['DELETE'])
     def delete_book(book_id):
-        return jsonify({
-            "success":True,
-            "deleted":book_id
-        })
+        error = False
+        try:
+            Book.query.filter_by(id=book_id).delete()
+            db.session.commit()
+        except:
+            error = True
+            db.session.rollback()
+        finally:
+            db.session.close()
+        
+        if error:
+            return jsonify({
+                "success":False,
+                "Book id":book_id,
+                "books":Book.query(Book.title).all(),
+                "total_books":len(Book.query.all())
+            })
+        else:
+            return jsonify({
+                "success":True,
+                "deleted":book_id,
+                "books":Book.query(Book.title).all(),
+                "total_books":len(Book.query.all())
+            })
 
 
     # @TODO: Write a route that create a new book.
