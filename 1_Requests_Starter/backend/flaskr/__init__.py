@@ -95,7 +95,8 @@ def create_app(test_config=None):
     def delete_book(book_id):
         error = False
         try:
-            Book.query.filter_by(id=book_id).delete()
+            book = Book.query.filter_by(Book.id == book_id).all()
+            book.delete()
             db.session.commit()
         except:
             error = True
@@ -107,14 +108,14 @@ def create_app(test_config=None):
             return jsonify({
                 "success":False,
                 "Book id":book_id,
-                "books":Book.query(Book.title).all(),
+                "books":get_books()
                 "total_books":len(Book.query.all())
             })
         else:
             return jsonify({
                 "success":True,
                 "deleted":book_id,
-                "books":Book.query(Book.title).all(),
+                "books":get_books()
                 "total_books":len(Book.query.all())
             })
 
