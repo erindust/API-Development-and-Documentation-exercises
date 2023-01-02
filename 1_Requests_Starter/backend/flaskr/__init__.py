@@ -6,7 +6,8 @@ import random
 
 from models import setup_db, Book, db
 
-BOOKS_PER_SHELF = 8
+BOOKS_PER_SHELF = 8    
+
 
 # @TODO: General Instructions
 #   - As you're creating endpoints, define them and then search for 'TODO' within the frontend to update the endpoints there.
@@ -44,11 +45,19 @@ def create_app(test_config=None):
         start = (page - 1) * BOOKS_PER_SHELF
         end = start + BOOKS_PER_SHELF
         books = Book.query.all()
+        
         formatted_books = [book.format() for book in books]
+
+        
+
+
+        if len(formatted_books) == 0:
+            abort(404)
+
         return jsonify({
             'success':True,
             'books':formatted_books[start:end],
-            'total_books':len(formatted_books)
+            'total_books':len(books)
         })
 
     # @TODO: Write a route that will update a single book's rating.
@@ -91,32 +100,43 @@ def create_app(test_config=None):
     #        Response body keys: 'success', 'deleted'(id of deleted book), 'books' and 'total_books'
     #        Response body keys: 'success', 'books' and 'total_books'
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
+    # TO TEST FROM COMMAND LINE: curl http://127.0.0.1:5000/books/3/delete-book -X DELETE -H "Content-Type: application/json"
     @app.route('/books/<int:book_id>/delete-book',methods=['DELETE'])
     def delete_book(book_id):
+        print("deleting book id:",book_id)
         error = False
         try:
-            book = Book.query.filter_by(Book.id == book_id).all()
+            print("bp8")
+            book = Book.query.filter(Book.id == book_id).one_or_none()
+            print(book)
+            print("bp2")
             book.delete()
             db.session.commit()
+            print("bp3")
         except:
             error = True
+            print("bp4")
             db.session.rollback()
         finally:
+            print("bp5")
+            books = Book.query.all()
+            print(books)
             db.session.close()
         
         if error:
+            print("bp6")
             return jsonify({
-                "success":False,
-                "Book id":book_id,
-                "books":get_books()
-                "total_books":len(Book.query.all())
+                "success":True,
+                "books":str(books),
+                "total_books":len(books)
             })
         else:
+            print("bp7")
             return jsonify({
                 "success":True,
                 "deleted":book_id,
-                "books":get_books()
-                "total_books":len(Book.query.all())
+                "books":str(books),
+                "total_books":len(books)
             })
 
 
@@ -126,6 +146,42 @@ def create_app(test_config=None):
     #       Your new book should show up immediately after you submit it at the end of the page.
     @app.route('/books/create-book',methods=['POST'])
     def create_book():
-        pass
+        error = False
+        body = {}
+        try:
+            my_request = request.get_json()
+            title = my_request["title"]
+            author = my_request["author"]
+            rating = my_request["rating"]
+            book = Book(title, author, rating)
+            db.session.add(book)
+            db.session.commit()
+            print("create 1")
+            # book = Book.query.filter_by(title == book.title).one_or_none()
+            book_id = book.id
+            print("create 2")
+        except:
+            error = True
+            db.session.rollback()
+        finally:
+            books = Book.query.all()
+            db.session.close()
+
+        if error:
+            return jsonify({
+                "success":False,
+                "books":str(books),
+                "total books":len(books)
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "created":book_id,
+                "books":str(books),
+                "total books":len(books)
+                # "request": str(my_request),
+                # "request_type":str(type(my_request))
+            })
+
 
     return app
