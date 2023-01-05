@@ -141,7 +141,7 @@ def create_app(test_config=None):
             print("bp6")
             return jsonify({
                 "success":True,
-                "books":str(books),
+                "books":paginate_books(request,books),
                 "total_books":len(books)
             })
         else:
@@ -149,7 +149,7 @@ def create_app(test_config=None):
             return jsonify({
                 "success":True,
                 "deleted":book_id,
-                "books":str(books),
+                "books":paginate_books(request,books),
                 "total_books":len(books)
             })
 
@@ -184,14 +184,14 @@ def create_app(test_config=None):
         if error:
             return jsonify({
                 "success":False,
-                "books":str(books),
+                "books":paginate_books(request,books),
                 "total books":len(books)
             })
         else:
             return jsonify({
                 "success": True,
                 "created":book_id,
-                "books":str(books),
+                "books":paginate_books(request,books),
                 "total books":len(books)
                 # "request": str(my_request),
                 # "request_type":str(type(my_request))
