@@ -15,8 +15,14 @@ BOOKS_PER_SHELF = 8
 #   - Make sure for each route that you're thinking through when to abort and with which kind of error
 #   - If you change any of the response body keys, make sure you update the frontend to correspond.
 
-def paginate_books(): #helper function
-    pass
+def paginate_books(request,selection): #helper function
+    page = request.args.get('page',1,type=int)
+    start = (page - 1) * BOOKS_PER_SHELF
+    end = start + BOOKS_PER_SHELF
+    
+    formatted_books = [book.format() for book in selection]
+    books_range = formatted_books[start:end]
+    return books_range
 
 def create_app(test_config=None):
     # create and configure the app
@@ -49,20 +55,22 @@ def create_app(test_config=None):
         books = Book.query.all()
 
         #--- this should be moved into the paginate_books() helper function
-        page = request.args.get('page',1,type=int)
-        start = (page - 1) * BOOKS_PER_SHELF
-        end = start + BOOKS_PER_SHELF
+        # page = request.args.get('page',1,type=int)
+        # start = (page - 1) * BOOKS_PER_SHELF
+        # end = start + BOOKS_PER_SHELF
         
-        formatted_books = [book.format() for book in books]
-        books_range = formatted_books[start:end]
+        # formatted_books = [book.format() for book in books]
+        # books_range = formatted_books[start:end]
         #------------------------------------------------------------------
 
-        if len(formatted_books) == 0:
+        current_books = paginate_books(request,books)
+
+        if len(current_books) == 0:
             abort(404)
 
         return jsonify({
             'success':True,
-            'books':books_range,
+            'books':current_books,
             'total_books':len(books)
         })
 
