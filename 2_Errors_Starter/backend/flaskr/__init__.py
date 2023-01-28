@@ -131,7 +131,7 @@ def create_app(test_config=None):
     #        Pay special attention to the status codes used in the aborts since those are relevant for this task!
 
     # @TODO: Write error handler decorators to handle AT LEAST status codes 400, 404, and 422.
-    @app.errorhandler(404)
+    @app.errorhandler(404) # 
     def not_found(error):
         return jsonify({
             "success":False,
@@ -155,6 +155,15 @@ def create_app(test_config=None):
             "error":400,
             "message":"bad request"
         }),400
+
+
+    @app.errorhandler(405)
+    def not_allowed(error):
+        return jsonify({
+            "success":False,
+            "error":405,
+            "message":"Method Not Allowed"
+        })
 
     # TEST: Practice writing curl requests. Write some requests that you know will error in expected ways.
     #       Make sure they are returning as expected. Do the same for other misformatted requests or requests missing data.
